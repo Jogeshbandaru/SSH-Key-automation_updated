@@ -1,0 +1,86 @@
+Automation process on adding users public ssh keys in ec2 jump servers through gitlab pipeline.
+
+I have the below information in my hand.
+
+I have 3 different applications ec2 instance  public Ip's and ec2 .pem keys that includes nonprod and prod environment
+
+I want to create three different folder for three applications in gitlab repo, and read IP's and keys what we are trying to add ssh in ec2 jump server
+
+How to automate the above task on application wise using git lab pipeline with any possible parameterized options ?
+ChatGPT
+To automate the process of adding users' public SSH keys to EC2 jump servers associated with three different applications (each having non-prod and prod environments) through a GitLab pipeline, and to organize the SSH keys and IP addresses within separate folders for each application, you can follow these steps:
+
+Organize GitLab Repository Structure: Create three different folders in your GitLab repository for each application, such as app1, app2, and app3. Place the SSH keys and a configuration file containing the EC2 instance IP addresses for each application within their respective folders.
+
+Create Configuration Files: Within each application folder, create a configuration file (e.g., config.txt) containing the EC2 instance public IP addresses and the corresponding PEM key file paths for non-prod and prod environments. Here's an example format for config.txt:
+
+plaintext
+Copy code
+[nonprod]
+nonprod_ec2_ip1 nonprod_ec2_key_path1
+nonprod_ec2_ip2 nonprod_ec2_key_path2
+nonprod_ec2_ip3 nonprod_ec2_key_path3
+
+[prod]
+prod_ec2_ip1 prod_ec2_key_path1
+prod_ec2_ip2 prod_ec2_key_path2
+prod_ec2_ip3 prod_ec2_key_path3
+Create a Script: Write a script that will read the configuration files, iterate over each EC2 instance and its corresponding key, and add the SSH keys to the appropriate authorized_keys file on each EC2 jump server. Below is an example script structure:
+
+bash
+Copy code
+#!/bin/bash
+
+# Function to add SSH keys to EC2 jump servers
+add_ssh_keys() {
+    local ENVIRONMENT="$1"         # Environment ("nonprod" or "prod")
+    local CONFIG_FILE="$2"         # Path to the configuration file
+    local PEM_KEY_FOLDER="$3"      # Path to the folder containing PEM keys
+
+    # Read configuration file and extract IP addresses and PEM key paths
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^\[.*\]$ ]]; then
+            continue  # Skip section headers
+        fi
+
+        # Extract EC2 IP and PEM key path
+        EC2_IP=$(echo "$line" | awk '{print $1}')
+        PEM_KEY=$(echo "$line" | awk '{print $2}')
+
+        # Add SSH key to EC2 jump server
+        scp -i "$PEM_KEY_FOLDER/$PEM_KEY" path/to/users/ssh/keys.pub ec2-user@"$EC2_IP":/tmp/keys.pub
+        ssh -i "$PEM_KEY_FOLDER/$PEM_KEY" ec2-user@"$EC2_IP" "cat /tmp/keys.pub >> ~/.ssh/authorized_keys && rm /tmp/keys.pub"
+        echo "Public keys added to $EC2_IP for $ENVIRONMENT environment"
+    done < "$CONFIG_FILE"
+}
+
+# Add SSH keys for each application and environment
+add_ssh_keys "nonprod" "app1/config.txt" "app1"
+add_ssh_keys "prod" "app1/config.txt" "app1"
+add_ssh_keys "nonprod" "app2/config.txt" "app2"
+add_ssh_keys "prod" "app2/config.txt" "app2"
+add_ssh_keys "nonprod" "app3/config.txt" "app3"
+add_ssh_keys "prod" "app3/config.txt" "app3"
+
+
+Configure GitLab CI/CD Pipeline: Set up a .gitlab-ci.yml file in your repository to define the pipeline stages. Below is an example configuration:
+
+yaml
+Copy code
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - chmod +x add_ssh_keys.sh
+    - ./add_ssh_keys.sh
+  only:
+    - master  # Or specify the branch you want to trigger the pipeline from
+
+
+Securely Manage Credentials: Store your EC2 instance PEM keys securely in GitLab CI/CD variables or use GitLab's secret management features to ensure sensitive information is not exposed.
+
+Run the Pipeline: Once everything is set up, commit your scripts, configuration files, and pipeline configuration to your GitLab repository. Trigger the pipeline manually or let it run automatically based on your configured triggers.
+
+This approach allows you to organize your SSH keys and IP addresses on an application-wise basis and parameterize the pipeline script to read these values dynamically from the configuration files.

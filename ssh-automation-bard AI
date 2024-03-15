@@ -1,0 +1,101 @@
+Automation process on adding users public ssh keys in ec2 jump servers through gitlab pipeline.
+
+I have the below information in my hand.
+
+I have 3 different applications ec2 instance public Ip's and ec2 .pem keys that includes nonprod and prod environment
+
+I want to create three different folder for three applications in gitlab repo, and read IP's and keys what we are trying to add ssh in ec2 jump server
+
+How to automate the above task on application wise using git lab pipeline with any possible parameterized options ?
+
+
+
+Using GitLab Pipeline to Automate SSH Key Addition on EC2 Jump Servers
+Here's how you can automate adding users' public SSH keys to EC2 jump servers for different applications using a GitLab pipeline with parameters:
+
+1. GitLab Runner Configuration:
+
+Ensure you have a GitLab Runner configured with SSH access to your EC2 jump servers.
+Define credentials for the user with appropriate permissions to add SSH keys on the jump servers. You can use GitLab Secrets Manager to store these credentials securely.
+
+2. GitLab Pipeline Script (.gitlab-ci.yml):
+
+YAML
+variables:
+  APPLICATIONS: ["app1", "app2", "app3"]  # List of applications
+  ENVIRONMENTS: ["nonprod", "prod"]        # Supported environments
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - echo "** Deploying SSH keys..."
+    # Loop through each application and environment
+    # Shell scripting example (replace with your actual logic)
+    for application in "${APPLICATIONS[@]}"; do
+      for environment in "${ENVIRONMENTS[@]}"; do
+        # Get IP address and PEM key path based on application and environment
+        ip_address=$(get_ip_address $application $environment)  # Replace with function to retrieve IP
+        pem_file=$(get_pem_file_path $environment)           # Replace with function to get PEM path
+
+        # Add SSH key to jump server (replace with actual SSH commands)
+        echo "Adding SSH key for $application ($environment) to $ip_address"
+        ssh -i "$pem_file" ec2-user@$ip_address "mkdir -p ~/.ssh && chmod 700 ~/.ssh; cat >> ~/.ssh/authorized_keys << EOF
+        $USER_PUBLIC_KEY  # Replace with variable containing user's public key
+        EOF
+        chmod 600 ~/.ssh/authorized_keys"
+
+      done
+    done
+
+  # Define functions to retrieve IP address and PEM file path (replace with your logic)
+  get_ip_address() {
+    # Logic to retrieve IP address based on application and environment
+    # This example uses a placeholder function, replace with your actual implementation
+    echo "10.0.0.$1$2"  # Placeholder logic (replace with actual IP retrieval)
+  }
+
+  get_pem_file_path() {
+    # Logic to retrieve PEM file path based on environment
+    # This example uses a placeholder function, replace with your actual implementation
+    echo "path/to/pem/files/$1.pem"  # Placeholder logic (replace with actual path)
+  }
+
+  only:
+    - master  # Run the pipeline only on pushes to the master branch (or adjust as needed)
+
+
+Use code with caution.
+3. Pipeline Parameters (Optional):
+
+You can define optional parameters in the .gitlab-ci.yml file to specify the application and environment during pipeline execution.
+This allows you to run the pipeline for specific deployments instead of all applications and environments at once.
+
+
+YAML
+variables:
+  APP_NAME: $APP_NAME  # Optional parameter for application name
+  ENV_NAME: $ENV_NAME  # Optional parameter for environment
+  ...  # Rest of the pipeline script
+
+only:
+  - master  # Or adjust as needed
+    # Check if application and environment parameters are provided, 
+    # otherwise run for all combinations
+    - if: $APP_NAME || $ENV_NAME
+      variables:
+        APPLICATIONS: [$APP_NAME]  # Use provided application name if available
+        ENVIRONMENTS: [$ENV_NAME]  # Use provided environment name if available
+Use code with caution.
+
+4. Adding User's Public Key:
+
+Store the user's public SSH key as a GitLab project variable or a protected variable for security reasons.
+Reference the variable name containing the public key within the script (e.g., $USER_PUBLIC_KEY).
+5. Security Considerations:
+
+Avoid storing PEM key files directly in the GitLab repository. Use GitLab Secrets Manager or a secure external credential store.
+Limit access to the pipeline script and credentials to authorized users only.
+Note: This is a basic example. You'll need to replace the placeholder functions (get_ip_address and get_pem_file_path) with your actual logic to retrieve IP addresses and PEM file paths based on your environment. Additionally, ensure proper error handling and logging within the script for troubleshooting purposes.

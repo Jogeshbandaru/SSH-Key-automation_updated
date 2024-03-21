@@ -6,6 +6,7 @@ Version: 22.091
 Get Latest & Actual SAA-C03 Exam's Question and Answers from PassLeader.
 https://www.passleader.com/
 2
+
 QUESTION 1
 A company has a website hosted on AWS The website is behind an Application Load Balancer
 (ALB) that is configured to handle HTTP and HTTPS separately. The company wants to forward all
@@ -15,9 +16,12 @@ A. Update the ALB's network ACL to accept only HTTPS traffic
 B. Create a rule that replaces the HTTP in the URL with HTTPS.
 C. Create a listener rule on the ALB to redirect HTTP traffic to HTTPS.
 D. Replace the ALB with a Network Load Balancer configured to use Server Name Indication (SNI).
+
 Answer: C
 Explanation:
 https://aws.amazon.com/premiumsupport/knowledge-center/elb-redirect-http-to-https-using-alb/
+
+
 QUESTION 2
 A company is developing a two-tier web application on AWS. The company's developers have
 deployed the application on an Amazon EC2 instance that connects directly to a backend Amazon
@@ -40,7 +44,9 @@ D. Store the database credentials as encrypted parameters in AWS Systems Manager
 Store.
 Turn on automatic rotation for the encrypted parameters.
 Attach the required permission to the EC2 role to grant access to the encrypted parameters.
+
 Answer: C
+
 QUESTION 3
 A company is deploying a new public web application to AWS. The application will run behind an
 Application Load Balancer (ALB).
@@ -49,9 +55,6 @@ external certificate authority (CA).
 The certificate must be rotated each year before the certificate expires.
 What should a solutions architect do to meet these requirements?
 A. Use AWS Certificate Manager (ACM) to issue an SSL/TLS certificate.
-Get Latest & Actual SAA-C03 Exam's Question and Answers from PassLeader.
-https://www.passleader.com/
-3
 Apply the certificate to the ALB.
 Use the managed renewal feature to automatically rotate the certificate.
 B. Use AWS Certificate Manager (ACM) to issue an SSL/TLS certificate.
@@ -66,7 +69,9 @@ Apply the certificate to the ALB.
 Use Amazon EventBridge (Amazon CloudWatch Events) to send a notification when the
 certificate is nearing expiration.
 Rotate the certificate manually.
+
 Answer: D
+
 QUESTION 4
 A company runs its Infrastructure on AWS and has a registered base of 700.000 users for res
 document management application. The company intends to create a product that converts large
